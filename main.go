@@ -6,11 +6,10 @@ import (
 	"github.com/ndphu/betmonitor/cache"
 	"github.com/ndphu/betmonitor/match"
 	"github.com/ndphu/betmonitor/notifier"
+	"github.com/ndphu/betmonitor/sched"
 	"log"
 	"os"
 )
-
-//192.168.0.103
 
 var groupId = os.Getenv("GROUP_ID")
 
@@ -30,7 +29,12 @@ func main() {
 		groupId = "aghzfmttc2JldHISCxIFQmF0Y2gYgICAgIDyiAoM"
 	}
 
-	match.InitMapDetails(groupId)
+	if err := match.InitMapDetails(groupId); err != nil {
+		log.Println("Fail to load match list")
+		panic(err)
+	}
+
+	sched.ScheduleJobs()
 
 	r := gin.Default()
 

@@ -5,6 +5,7 @@ import (
 	"github.com/PuerkitoBio/goquery"
 	"github.com/ndphu/betmonitor/auth"
 	"github.com/ndphu/betmonitor/cache"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"regexp"
@@ -30,7 +31,9 @@ func (m *Match) GetBetList() ([]*Bet, error) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 {
-		log.Println("GetBetList:", "Server return unexpected status code", resp.StatusCode)
+		payload, _ := ioutil.ReadAll(resp.Body)
+		log.Println("GetBetList:", "Server return unexpected status code", resp.StatusCode, url)
+		log.Println("GetBetList:", "Body", string(payload))
 		return nil, errors.New("InvalidResponseStatus")
 	}
 	doc, err := goquery.NewDocumentFromReader(resp.Body)
