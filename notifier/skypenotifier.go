@@ -26,7 +26,7 @@ func (sn *SkypeNotifier) NotifyItem(flip *match.Flip) (error) {
 	if user == "" {
 		user = flip.User.Email
 	}
-	msg := flip.MatchDetails + "\n" + strings.Repeat("-", len(flip.MatchDetails)) +g "\n" + user + "\nUpdated:\n" + flip.From + " ---> " + flip.To
+	msg := flip.MatchDetails + "\n" + strings.Repeat("-", len(flip.MatchDetails)) + "\n" + user + "\nUpdated:\n" + flip.From + " ---> " + flip.To
 	log.Println("Flip message:\n", msg)
 	return utils.Reply(msg)
 }
