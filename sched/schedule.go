@@ -1,43 +1,19 @@
 package sched
 
 import (
-	"bufio"
-	"encoding/json"
 	"github.com/jasonlvhit/gocron"
+	"github.com/ndphu/betmonitor/config"
 	"github.com/ndphu/betmonitor/match"
 	"github.com/ndphu/betmonitor/notifier"
-	"io/ioutil"
 	"log"
-	"os"
-	"path"
 )
 
 func ScheduleJobs() {
 	s := gocron.NewScheduler()
 	s.Every(15).Second().Do(func() {
-		getwd, err := os.Getwd()
-		if err != nil {
-			panic(err)
-		}
-		nt := make([]*notifier.NotificationTarget, 0)
-		payload, err := ioutil.ReadFile(path.Join(getwd, "targets.json"))
-		if err != nil {
-			panic(err)
-		}
-		if err := json.Unmarshal(payload, &nt); err != nil {
-			panic(err)
-		}
+		conf := config.GetConfig()
 
-		file, err := os.Open(path.Join(getwd, "matches.txt"))
-		if err != nil {
-			log.Fatal(err)
-		}
-		defer file.Close()
-
-		scanner := bufio.NewScanner(file)
-		// optionally, resize scanner's capacity for lines over 64K, see next example
-		for scanner.Scan() {
-			matchId := scanner.Text()
+		for _, matchId := range conf.Matches {
 			_m := match.GetMatch(matchId)
 			if _m != nil {
 				func(m *match.Match) {
@@ -46,20 +22,17 @@ func ScheduleJobs() {
 						return
 					} else {
 						for _, flip := range flips {
-							var notifyError error
-							for _, n := range nt {
-								skypeNotifier := notifier.NewSkypeNotifier(n.WorkerId, n.Target)
-								if err := skypeNotifier.NotifyItem(flip); err != nil {
-									notifyError = err
-									break
-								}
-							}
-							if notifyError == nil {
+							skypeNotifier := notifier.NewSkypeNotifier()
+							if err := skypeNotifier.NotifyItem(flip); err != nil {
+								log.Printf("Fail to notify flip %v\n", flip)
+							} else {
 								// successfully sent notification
+								log.Printf("Successfully notify flip %v\n", flip)
 								if err := flip.UpdateCache(); err != nil {
-									log.Println("Fail to update flip",err)
+									log.Println("Fail to update flip", err)
 								}
 							}
+
 						}
 					}
 				}(_m)

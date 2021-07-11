@@ -15,12 +15,13 @@ var groupId = os.Getenv("GROUP_ID")
 
 type NotificationTarget struct {
 	WorkerId string `json:"workerId"`
-	Target string `json:"target"`
+	Target   string `json:"target"`
 }
 
 func main() {
 	store := auth.GetStore()
 	store.Start()
+
 	log.Println(store.Cookie())
 
 	cache.Start()
@@ -71,7 +72,7 @@ func main() {
 	api.POST("/match/:matchId/notifyFlips", func(c *gin.Context) {
 		matchId := c.Param("matchId")
 		nt := make([]*NotificationTarget, 0)
-		if err := c.ShouldBindJSON(&nt);err != nil {
+		if err := c.ShouldBindJSON(&nt); err != nil {
 			c.JSON(400, gin.H{"success": false, "error": err.Error()})
 			return
 		}
@@ -81,22 +82,16 @@ func main() {
 			c.JSON(500, gin.H{"success": false, "error": err.Error()})
 		} else {
 			for _, flip := range flips {
-				var notifyError error
-				for _, n := range nt {
-					skypeNotifier := notifier.NewSkypeNotifier(n.WorkerId, n.Target)
-					if err := skypeNotifier.NotifyItem(flip); err != nil {
-						notifyError = err
-						break
-					}
-				}
-				if notifyError == nil {
+				skypeNotifier := notifier.NewSkypeNotifier()
+				if err := skypeNotifier.NotifyItem(flip); err != nil {
+					log.Printf("Fail to notify flip %v\n", flip)
+				} else {
 					// successfully sent notification
 					if err := flip.UpdateCache(); err != nil {
-						log.Println("Fail to update flip",err)
+						log.Println("Fail to update flip", err)
 					}
 				}
 			}
-
 			c.JSON(200, gin.H{"success": true, "flips": flips})
 		}
 	})

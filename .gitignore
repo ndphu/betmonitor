@@ -41,6 +41,5 @@ token
 resources*
 
 workers.json
-covid-news-watcher.zip
-covid-news-watcher
 cookie
+config.json

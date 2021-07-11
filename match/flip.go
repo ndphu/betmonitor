@@ -1,9 +1,12 @@
 package match
 
-import "github.com/ndphu/betmonitor/cache"
+import (
+	"github.com/ndphu/betmonitor/cache"
+	"github.com/ndphu/betmonitor/config"
+)
 
 type Flip struct {
-	User         string `json:"user"`
+	User         config.User `json:"user"`
 	From         string `json:"from"`
 	To           string `json:"to"`
 	MatchId      string `json:"matchId"`
@@ -11,5 +14,5 @@ type Flip struct {
 }
 
 func (flip *Flip) UpdateCache() error {
-	return cache.Save("kmsbet:" + flip.MatchId + ":" + flip.User, flip.To)
+	return cache.Save("kmsbet:" + flip.MatchId + ":" + flip.User.Email, flip.To)
 }

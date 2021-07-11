@@ -5,6 +5,7 @@ import (
 	"github.com/PuerkitoBio/goquery"
 	"github.com/ndphu/betmonitor/auth"
 	"github.com/ndphu/betmonitor/cache"
+	"github.com/ndphu/betmonitor/config"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -67,7 +68,6 @@ func (m *Match) GetFlips() ([]*Flip, error) {
 	flips := make([]*Flip, 0)
 	for _, bet := range bets {
 		key := "kmsbet:" + m.Key + ":" + bet.User
-		log.Println("BetFlip:", "Checking bet key", key)
 		if exist, err := cache.Exists(key); err != nil {
 			log.Println("BetFlip:", "Fail to check key exist", key, err)
 			return nil, err
@@ -80,7 +80,7 @@ func (m *Match) GetFlips() ([]*Flip, error) {
 				if vote != bet.Bet {
 					log.Println("BetFlip:", "User", bet.User, "flip the choice")
 					flips = append(flips, &Flip{
-						User:         bet.User,
+						User:         config.FindUser(bet.User),
 						From:         vote,
 						To:           bet.Bet,
 						MatchId:      m.Key,
@@ -90,7 +90,7 @@ func (m *Match) GetFlips() ([]*Flip, error) {
 			}
 		} else {
 			flips = append(flips, &Flip{
-				User:         bet.User,
+				User:         config.FindUser(bet.User),
 				From:         "N/A",
 				To:           bet.Bet,
 				MatchId:      m.Key,
